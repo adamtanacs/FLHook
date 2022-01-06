@@ -201,7 +201,7 @@ void ClearClientInfo(uint iClientID) {
     info->bSpawnProtected = false;
 
     for (auto& i : info->mapPluginData) {
-        std::fill_n(i.second, 40, 0x0);
+        std::fill_n(i.second.begin(), 40, 0x0);
     }
 
     CALL_PLUGINS_V(PLUGIN_ClearClientInfo, , (uint), (iClientID));

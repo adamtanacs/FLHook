@@ -1,5 +1,6 @@
 ﻿#include "hook.h"
 #include "CCmds.h"
+#include <array>
 
 bool g_bPlugin_nofunctioncall;
 
@@ -18,6 +19,14 @@ void Plugin_Communication_CallBack(PLUGIN_MESSAGE msg, void *data) {
 __declspec(dllexport) void Plugin_Communication(PLUGIN_MESSAGE msg,
                                                 void *data) {
     Plugin_Communication_CallBack(msg, data);
+}
+
+template <typename T>
+__declspec(dllexport) T *GetPluginClientData(uint iClientID, PLUGIN_INFO *info) {
+    CLIENT_INFO *c = &ClientInfo[iClientID];
+    auto data = c->mapPluginData[info];
+    T *type = (T *)data.data();
+    return type;
 }
 
 namespace PluginManager {
@@ -65,6 +74,7 @@ HK_ERROR PausePlugin(const std::string &sShortName, bool bPause) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// TODO: Unfuck plugin unloading to actually handle data deallocation
 HK_ERROR UnloadPlugin(const std::string &sShortName) {
     for (auto plugin = lstPlugins.begin(); plugin != lstPlugins.end();
          ++plugin) {
@@ -172,6 +182,7 @@ void LoadPlugin(const std::string &sFileName, CCmds *adminInterface,
     plugin.bMayUnload = p_PI->bMayUnload;
     plugin.sName = p_PI->sName;
     plugin.sShortName = p_PI->sShortName;
+    plugin.info = p_PI;
 
     // plugins that may not unload are interpreted as crucial plugins that can
     // also not be loaded after FLServer startup
@@ -197,6 +208,11 @@ void LoadPlugin(const std::string &sFileName, CCmds *adminInterface,
 
         pPluginHooks[(int)hookIn.eCallbackID].push_back(hook);
         pPluginHooks[(int)hookIn.eCallbackID].sort(PLUGIN_SORTCRIT());
+    }
+
+    // Allocate some space in our client info block
+    for (auto &i : ClientInfo) {
+        i.mapPluginData[p_PI] = std::array<uchar, 40>();
     }
 
     adminInterface->Print(L"Plugin loaded: %s (%s)\n",

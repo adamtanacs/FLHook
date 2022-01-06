@@ -3,6 +3,7 @@
 
 // Includes
 #include "Main.h"
+#include <array>
 
 // JSON Library
 using json = nlohmann::json;
@@ -11,9 +12,13 @@ using json = nlohmann::json;
 std::string jsonFileName;
 std::map<uint, std::wstring> mapShips;
 
+PLUGIN_INFO *pInfo = nullptr;
+
 // Load configuration file
 void LoadSettings() {
     returncode = DEFAULT_RETURNCODE;
+
+    auto ifn = GetPluginClientData<PLUGIN_INFO>(0, pInfo);
 
     // The path to the configuration file.
     char szCurDir[MAX_PATH];
@@ -145,22 +150,23 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 // Functions to hook
 EXPORT PLUGIN_INFO *Get_PluginInfo() {
-    PLUGIN_INFO *p_PI = new PLUGIN_INFO();
-    p_PI->sName = "Stats";
-    p_PI->sShortName = "stats";
-    p_PI->bMayPause = true;
-    p_PI->bMayUnload = true;
-    p_PI->ePluginReturnCode = &returncode;
-    p_PI->lstHooks.push_back(
+    pInfo = new PLUGIN_INFO();
+    pInfo->sName = "Stats";
+    pInfo->sShortName = "stats";
+    pInfo->bMayPause = true;
+    pInfo->bMayUnload = true;
+    pInfo->ePluginReturnCode = &returncode;
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&LoadSettings, PLUGIN_LoadSettings, 0));
-    p_PI->lstHooks.push_back(
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&PlayerLaunch_AFTER,
                         PLUGIN_HkIServerImpl_PlayerLaunch_AFTER, 0));
-    p_PI->lstHooks.push_back(
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&DisConnect_AFTER,
                         PLUGIN_HkIServerImpl_DisConnect_AFTER, 0));
-    p_PI->lstHooks.push_back(
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&CharacterSelect_AFTER,
                         PLUGIN_HkIServerImpl_CharacterSelect_AFTER, 0));
-    return p_PI;
+
+    return pInfo;
 }

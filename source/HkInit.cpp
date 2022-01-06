@@ -1,5 +1,6 @@
 ﻿#include <process.h>
 #include "hook.h"
+#include <array>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -159,43 +160,49 @@ clear the clientinfo
 **************************************************************************************************************/
 
 void ClearClientInfo(uint iClientID) {
-    ClientInfo[iClientID].dieMsg = DIEMSG_ALL;
-    ClientInfo[iClientID].iShip = 0;
-    ClientInfo[iClientID].iShipOld = 0;
-    ClientInfo[iClientID].tmSpawnTime = 0;
-    ClientInfo[iClientID].lstMoneyFix.clear();
-    ClientInfo[iClientID].iTradePartner = 0;
-    ClientInfo[iClientID].iBaseEnterTime = 0;
-    ClientInfo[iClientID].iCharMenuEnterTime = 0;
-    ClientInfo[iClientID].bCruiseActivated = false;
-    ClientInfo[iClientID].tmKickTime = 0;
-    ClientInfo[iClientID].iLastExitedBaseID = 0;
-    ClientInfo[iClientID].bDisconnected = false;
-    ClientInfo[iClientID].bCharSelected = false;
-    ClientInfo[iClientID].tmF1Time = 0;
-    ClientInfo[iClientID].tmF1TimeDisconnect = 0;
+    auto* info = &ClientInfo[iClientID];
+
+    info->dieMsg = DIEMSG_ALL;
+    info->iShip = 0;
+    info->iShipOld = 0;
+    info->tmSpawnTime = 0;
+    info->lstMoneyFix.clear();
+    info->iTradePartner = 0;
+    info->iBaseEnterTime = 0;
+    info->iCharMenuEnterTime = 0;
+    info->bCruiseActivated = false;
+    info->tmKickTime = 0;
+    info->iLastExitedBaseID = 0;
+    info->bDisconnected = false;
+    info->bCharSelected = false;
+    info->tmF1Time = 0;
+    info->tmF1TimeDisconnect = 0;
 
     DamageList dmg;
-    ClientInfo[iClientID].dmgLast = dmg;
-    ClientInfo[iClientID].dieMsgSize = CS_DEFAULT;
-    ClientInfo[iClientID].chatSize = CS_DEFAULT;
-    ClientInfo[iClientID].chatStyle = CST_DEFAULT;
+    info->dmgLast = dmg;
+    info->dieMsgSize = CS_DEFAULT;
+    info->chatSize = CS_DEFAULT;
+    info->chatStyle = CST_DEFAULT;
 
-    ClientInfo[iClientID].bAutoBuyMissiles = false;
-    ClientInfo[iClientID].bAutoBuyMines = false;
-    ClientInfo[iClientID].bAutoBuyTorps = false;
-    ClientInfo[iClientID].bAutoBuyCD = false;
-    ClientInfo[iClientID].bAutoBuyCM = false;
-    ClientInfo[iClientID].bAutoBuyReload = false;
+    info->bAutoBuyMissiles = false;
+    info->bAutoBuyMines = false;
+    info->bAutoBuyTorps = false;
+    info->bAutoBuyCD = false;
+    info->bAutoBuyCM = false;
+    info->bAutoBuyReload = false;
 
-    ClientInfo[iClientID].lstIgnore.clear();
-    ClientInfo[iClientID].iKillsInARow = 0;
-    ClientInfo[iClientID].wscHostname = L"";
-    ClientInfo[iClientID].bEngineKilled = false;
-    ClientInfo[iClientID].bThrusterActivated = false;
-    ClientInfo[iClientID].bTradelane = false;
-    ClientInfo[iClientID].iGroupID = 0;
-    ClientInfo[iClientID].bSpawnProtected = false;
+    info->lstIgnore.clear();
+    info->iKillsInARow = 0;
+    info->wscHostname = L"";
+    info->bEngineKilled = false;
+    info->bThrusterActivated = false;
+    info->bTradelane = false;
+    info->iGroupID = 0;
+    info->bSpawnProtected = false;
+
+    for (auto& i : info->mapPluginData) {
+        std::fill_n(i.second, 40, 0x0);
+    }
 
     CALL_PLUGINS_V(PLUGIN_ClearClientInfo, , (uint), (iClientID));
 }
@@ -210,20 +217,22 @@ void LoadUserSettings(uint iClientID) {
     HkGetAccountDirName(acc, wscDir);
     std::string scUserFile = scAcctPath + wstos(wscDir) + "\\flhookuser.ini";
 
+    auto *info = &ClientInfo[iClientID];
+
     // read diemsg settings
-    ClientInfo[iClientID].dieMsg =
+    info->dieMsg =
         (DIEMSGTYPE)IniGetI(scUserFile, "settings", "DieMsg", DIEMSG_ALL);
-    ClientInfo[iClientID].dieMsgSize =
+    info->dieMsgSize =
         (CHATSIZE)IniGetI(scUserFile, "settings", "DieMsgSize", CS_DEFAULT);
 
     // read chatstyle settings
-    ClientInfo[iClientID].chatSize =
+    info->chatSize =
         (CHATSIZE)IniGetI(scUserFile, "settings", "ChatSize", CS_DEFAULT);
-    ClientInfo[iClientID].chatStyle =
+    info->chatStyle =
         (CHATSTYLE)IniGetI(scUserFile, "settings", "ChatStyle", CST_DEFAULT);
 
     // read ignorelist
-    ClientInfo[iClientID].lstIgnore.clear();
+    info->lstIgnore.clear();
     for (int i = 1;; i++) {
         std::wstring wscIgnore =
             IniGetWS(scUserFile, "IgnoreList", std::to_string(i), L"");
@@ -233,7 +242,7 @@ void LoadUserSettings(uint iClientID) {
         IGNORE_INFO ii;
         ii.wscCharname = GetParam(wscIgnore, ' ', 0);
         ii.wscFlags = GetParam(wscIgnore, ' ', 1);
-        ClientInfo[iClientID].lstIgnore.push_back(ii);
+        info->lstIgnore.push_back(ii);
     }
 }
 
@@ -253,17 +262,19 @@ void LoadUserCharSettings(uint iClientID) {
                       wscFilename);
     std::string scSection = "autobuy_" + wstos(wscFilename);
 
-    ClientInfo[iClientID].bAutoBuyMissiles =
+    auto *info = &ClientInfo[iClientID];
+
+    info->bAutoBuyMissiles =
         IniGetB(scUserFile, scSection, "missiles", false);
-    ClientInfo[iClientID].bAutoBuyMines =
+    info->bAutoBuyMines =
         IniGetB(scUserFile, scSection, "mines", false);
-    ClientInfo[iClientID].bAutoBuyTorps =
+    info->bAutoBuyTorps =
         IniGetB(scUserFile, scSection, "torps", false);
-    ClientInfo[iClientID].bAutoBuyCD =
+    info->bAutoBuyCD =
         IniGetB(scUserFile, scSection, "cd", false);
-    ClientInfo[iClientID].bAutoBuyCM =
+    info->bAutoBuyCM =
         IniGetB(scUserFile, scSection, "cm", false);
-    ClientInfo[iClientID].bAutoBuyReload =
+    info->bAutoBuyReload =
         IniGetB(scUserFile, scSection, "reload", false);
 
     CALL_PLUGINS_V(PLUGIN_LoadUserCharSettings, , (uint), (iClientID));

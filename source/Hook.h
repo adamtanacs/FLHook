@@ -151,6 +151,7 @@ struct PLUGIN_DATA {
     bool bMayPause;
     bool bMayUnload;
     bool bPaused;
+    PLUGIN_INFO *info;
 };
 
 struct PLUGIN_SORTCRIT {
@@ -502,7 +503,9 @@ struct CLIENT_INFO {
 
     bool bSpawnProtected;
     bool bUseServersideHitDetection; // used by AC Plugin
-    uchar unused_data[127];
+
+    // Assign 10 variables to every plugin
+    std::map<PLUGIN_INFO *, std::array<uchar, 40>> mapPluginData;
 };
 
 // taken from directplay
@@ -593,6 +596,8 @@ EXPORT void UnloadPlugins();
 } // namespace PluginManager
 
 EXPORT void Plugin_Communication(PLUGIN_MESSAGE msgtype, void *msg);
+template <typename T>
+EXPORT T *GetPluginClientData(uint iClientID, PLUGIN_INFO *info);
 
 // HkInit
 void PatchClientImpl();

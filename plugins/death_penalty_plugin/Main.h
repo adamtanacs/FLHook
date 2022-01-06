@@ -10,8 +10,11 @@
 #include <algorithm>
 #include <FLHook.h>
 #include <plugin.h>
+#include <array>
 
-struct CLIENT_DATA {
+PLUGIN_INFO *pInfo = nullptr;
+
+struct DP_DATA { // This is also going
     bool bDisplayDPOnLaunch = true;
     int DeathPenaltyCredits = 0;
 };
@@ -19,7 +22,7 @@ struct CLIENT_DATA {
 float set_fDeathPenalty = 0;
 float set_fDeathPenaltyKiller = 0;
 std::list<uint> ExcludedSystems;
-std::map<uint, CLIENT_DATA> MapClients;
+std::map<uint, DP_DATA> MapClients; // This is going
 std::map<uint, float> FractionOverridesbyShip;
 
 PLUGIN_RETURNCODE returncode;

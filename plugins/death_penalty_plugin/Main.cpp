@@ -91,6 +91,7 @@ void __stdcall PlayerLaunch(unsigned int iShip, unsigned int iClientID) {
 
     // No point in processing anything if there is no death penalty
     if (set_fDeathPenalty) {
+        auto* dpData = reinterpret_cast<DP_DATA *>(GetPluginClientData(iClientID, pInfo));
 
         // Check to see if the player is in a system that doesn't have death
         // penalty
@@ -101,18 +102,18 @@ void __stdcall PlayerLaunch(unsigned int iShip, unsigned int iClientID) {
             pub::Player::GetAssetValue(iClientID, fValue);
 
             // Calculate what the death penalty would be upon death
-            MapClients[iClientID].DeathPenaltyCredits =
+            dpData->DeathPenaltyCredits =
                 (int)(fValue * fShipFractionOverride(set_fDeathPenalty));
 
             // Should we print a death penalty notice?
-            if (MapClients[iClientID].bDisplayDPOnLaunch)
+            if (dpData->bDisplayDPOnLaunch)
                 PrintUserCmdText(
                     iClientID,
                     L"Notice: the death penalty for your ship will be " +
-                        ToMoneyStr(MapClients[iClientID].DeathPenaltyCredits) +
+                        ToMoneyStr(dpData->DeathPenaltyCredits) +
                         L" credits.  Type /dp for more information.");
         } else
-            MapClients[iClientID].DeathPenaltyCredits = 0;
+            dpData->DeathPenaltyCredits = 0;
     }
 }
 
@@ -132,9 +133,10 @@ void LoadUserCharSettings(uint iClientID) {
     std::string scSection = "general_" + scFilename;
 
     // read death penalty settings
-    CLIENT_DATA c;
-    c.bDisplayDPOnLaunch = IniGetB(scUserFile, scSection, "DPnotice", true);
-    MapClients[iClientID] = c;
+    auto dpData =
+        reinterpret_cast<DP_DATA *>(GetPluginClientData(iClientID, pInfo));
+    dpData->bDisplayDPOnLaunch =
+        IniGetB(scUserFile, scSection, "DPnotice", true);
 }
 
 // Function that will apply the death penalty on a player death
@@ -145,12 +147,16 @@ void HkPenalizeDeath(uint iClientID, uint iKillerID) {
     // Valid iClientID and the ShipArch or System isnt in the excluded list?
     if (iClientID != -1 && !bExcludedSystem(iClientID)) {
 
+        // Grab client data
+        auto dpData =
+            reinterpret_cast<DP_DATA *>(GetPluginClientData(iClientID, pInfo));
+
         // Get the players cash
         int iCash;
         HkGetCash(ARG_CLIENTID(iClientID), iCash);
 
         // Get how much the player owes
-        int iOwed = MapClients[iClientID].DeathPenaltyCredits;
+        int iOwed = dpData->DeathPenaltyCredits;
 
         // If the amount the player owes is more than they have, set the
         // amount to their total cash
@@ -231,12 +237,16 @@ bool UserCmd_DP(uint iClientID, const std::wstring &wscCmd,
 
     if (wscParam.length()) // Arguments passed
     {
+        // Grab client data
+        auto dpData =
+            reinterpret_cast<DP_DATA *>(GetPluginClientData(iClientID, pInfo));
+
         if (ToLower(Trim(wscParam)) == L"off") {
-            MapClients[iClientID].bDisplayDPOnLaunch = false;
+            dpData->bDisplayDPOnLaunch = false;
             SaveDPNoticeToCharFile(iClientID, "no");
             PrintUserCmdText(iClientID, L"Death penalty notices disabled.");
         } else if (ToLower(Trim(wscParam)) == L"on") {
-            MapClients[iClientID].bDisplayDPOnLaunch = true;
+            dpData->bDisplayDPOnLaunch = true;
             SaveDPNoticeToCharFile(iClientID, "yes");
             PrintUserCmdText(iClientID, L"Death penalty notices enabled.");
         } else {
@@ -343,25 +353,25 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 // Functions to hook
 EXPORT PLUGIN_INFO *Get_PluginInfo() {
-    PLUGIN_INFO *p_PI = new PLUGIN_INFO();
-    p_PI->sName = "Death Penalty";
-    p_PI->sShortName = "deathpenalty";
-    p_PI->bMayPause = true;
-    p_PI->bMayUnload = true;
-    p_PI->ePluginReturnCode = &returncode;
-    p_PI->lstHooks.push_back(
+    pInfo = new PLUGIN_INFO();
+    pInfo->sName = "Death Penalty";
+    pInfo->sShortName = "deathpenalty";
+    pInfo->bMayPause = true;
+    pInfo->bMayUnload = true;
+    pInfo->ePluginReturnCode = &returncode;
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&LoadSettings, PLUGIN_LoadSettings, 0));
-    p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&UserCmd_Process,
-                                             PLUGIN_UserCmd_Process, 0));
-    p_PI->lstHooks.push_back(
+    pInfo->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&UserCmd_Process,
+                                              PLUGIN_UserCmd_Process, 0));
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&UserCmd_Help, PLUGIN_UserCmd_Help, 0));
-    p_PI->lstHooks.push_back(
+    pInfo->lstHooks.push_back(
         PLUGIN_HOOKINFO((FARPROC *)&ShipDestroyed, PLUGIN_ShipDestroyed, 0));
-    p_PI->lstHooks.push_back(PLUGIN_HOOKINFO(
+    pInfo->lstHooks.push_back(PLUGIN_HOOKINFO(
         (FARPROC *)&PlayerLaunch, PLUGIN_HkIServerImpl_PlayerLaunch, 0));
-    p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&LoadUserCharSettings,
-                                             PLUGIN_LoadUserCharSettings, 0));
-    p_PI->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&ClearClientInfo,
-                                             PLUGIN_ClearClientInfo, 0));
-    return p_PI;
+    pInfo->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&LoadUserCharSettings,
+                                              PLUGIN_LoadUserCharSettings, 0));
+    pInfo->lstHooks.push_back(PLUGIN_HOOKINFO((FARPROC *)&ClearClientInfo,
+                                              PLUGIN_ClearClientInfo, 0));
+    return pInfo;
 }

@@ -21,14 +21,6 @@ __declspec(dllexport) void Plugin_Communication(PLUGIN_MESSAGE msg,
     Plugin_Communication_CallBack(msg, data);
 }
 
-template <typename T>
-__declspec(dllexport) T *GetPluginClientData(uint iClientID, PLUGIN_INFO *info) {
-    CLIENT_INFO *c = &ClientInfo[iClientID];
-    auto data = c->mapPluginData[info];
-    T *type = (T *)data.data();
-    return type;
-}
-
 namespace PluginManager {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

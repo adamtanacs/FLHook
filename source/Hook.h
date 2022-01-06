@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <array>
 #include <time.h>
 #include "global.h"
 #include "flcodec.h"
@@ -596,8 +597,6 @@ EXPORT void UnloadPlugins();
 } // namespace PluginManager
 
 EXPORT void Plugin_Communication(PLUGIN_MESSAGE msgtype, void *msg);
-template <typename T>
-EXPORT T *GetPluginClientData(uint iClientID, PLUGIN_INFO *info);
 
 // HkInit
 void PatchClientImpl();

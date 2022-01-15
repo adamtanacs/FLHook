@@ -96,6 +96,53 @@ class EXPORT Console {
     static void ConInfo(std::wstring wStr, ...);
 };
 
+class EXPORT CharacterHook {
+    inline static bool bPatched = false;
+    inline static CharacterHook *Instance;
+
+    struct FlHookPlayerData {
+        std::string charFileName;
+        std::map<std::string, std::string> lines;
+    };
+
+    std::map<uint, FlHookPlayerData> clients;
+
+    void Init();
+    int __stdcall HkCbUpdateFile(char* fileName, wchar_t* saveTime, int b);
+    static std::string GetAccountDir(uint client);
+    static std::string GetCharFilename(const std::wstring &charName);
+    
+
+  public:
+    CharacterHook();
+    ~CharacterHook();
+
+    static CharacterHook* Get();
+
+    void ClearClientInfo(uint id);
+    void __stdcall CharacterSelect(const CHARACTER_ID &charId, uint client);
+    void __stdcall Disconnect(unsigned int client, enum EFLConnection p2);
+    void LoadSettings();
+
+    std::string IniGetS(uint client, const std::string &name);
+    std::wstring IniGetWS(uint client, const std::string &name);
+    uint IniGetI(uint client, const std::string &name);
+    bool IniGetB(uint client, const std::string &name);
+    float IniGetF(uint client, const std::string &name);
+    void IniSetS(uint client, const std::string &name, const std::string &value);
+    void IniSetWS(uint client, const std::string &name, const std::wstring &value);
+    void IniSetI(uint client, const std::string &name, uint value);
+    void IniSetB(uint client, const std::string &name, bool value);
+    void IniSetF(uint client, const std::string &name, float value);
+    void IniSetS(const std::wstring &charName, const std::string &name, const std::string &value);
+    void IniSetWS(const std::wstring &charName, const std::string &name, const std::wstring &value);
+    void IniSetI(const std::wstring &charName, const std::string &name, uint value);
+    void IniSetB(const std::wstring &charName, const std::string &name, bool value);
+    void IniSetF(const std::wstring &charName, const std::string &name, float value);
+};
+
+extern std::unique_ptr<CharacterHook> characterHook;
+
 EXPORT std::wstring stows(const std::string &scText);
 EXPORT std::string wstos(const std::wstring &wscText);
 EXPORT std::string IniGetS(const std::string &scFile, const std::string &scApp,

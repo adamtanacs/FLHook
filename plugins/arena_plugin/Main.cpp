@@ -11,7 +11,7 @@
 #include <FLHook.h>
 #include <plugin.h>
 #include <plugin_comms.h>
-#include "../hookext_plugin/hookext_exports.h"
+
 
 #define CLIENT_STATE_NONE 0
 #define CLIENT_STATE_TRANSFER 1
@@ -127,11 +127,11 @@ void StoreReturnPointForClient(unsigned int client) {
     if (!base)
         return;
 
-    HookExt::IniSetI(client, "conn.retbase", base);
+    CharacterHook::Get()->IniSetI(client, "conn.retbase", base);
 }
 
 unsigned int ReadReturnPointForClient(unsigned int client) {
-    return HookExt::IniGetI(client, "conn.retbase");
+    return CharacterHook::Get()->IniGetI(client, "conn.retbase");
 }
 
 void MoveClient(unsigned int client, unsigned int targetBase) {
@@ -208,7 +208,7 @@ void __stdcall PlayerLaunch_AFTER(unsigned int ship, unsigned int client) {
             return;
 
         MoveClient(client, returnPoint);
-        HookExt::IniSetI(client, "conn.retbase", 0);
+        CharacterHook::Get()->IniSetI(client, "conn.retbase", 0);
         return;
     }
 }

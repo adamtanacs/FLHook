@@ -1902,6 +1902,7 @@ void __stdcall DisConnect(uint clientID, EFLConnection conn) {
 		} CALL_SERVER_POSTAMBLE(true, );
 	}
 
+	//characterHook->Disconnect(clientID, conn);
 	CallPluginsAfter(HookedCall::IServerImpl__DisConnect,
 			clientID, conn);
 }
@@ -1986,6 +1987,8 @@ void __stdcall CharacterSelect(CHARACTER_ID const& cid, uint clientID) {
 
 	CHECK_FOR_DISCONNECT;
 
+	characterHook->CharacterSelect(cid, clientID);
+
 	bool innerCheck = CharacterSelect__Inner(cid, clientID);
 	if(!innerCheck) return;
 	if(!skip) {
@@ -1995,7 +1998,6 @@ void __stdcall CharacterSelect(CHARACTER_ID const& cid, uint clientID) {
 	}
 	CharacterSelect__InnerAfter(cid, clientID);
 
-
 	CallPluginsAfter(HookedCall::IServerImpl__CharacterSelect,
 			cid, clientID);
 }
@@ -2003,11 +2005,9 @@ void __stdcall CharacterSelect(CHARACTER_ID const& cid, uint clientID) {
 
 namespace HkIServerImpl {
 void __stdcall CreateNewCharacter(SCreateCharacterInfo const& _genArg1, uint clientID) {
-	AddDebugLog("CreateNewCharacter(\n\tSCreateCharacterInfo const& _genArg1 = %s\n\tuint clientID = %u\n)",
-			ToLogString(_genArg1), clientID);
+	AddDebugLog("CreateNewCharacter(\n\tSCreateCharacterInfo const& _genArg1 = %s\n\tuint clientID = %u\n)", ToLogString(_genArg1), clientID);
 
-	auto skip = CallPluginsBefore<void>(HookedCall::IServerImpl__CreateNewCharacter,
-			_genArg1, clientID);
+	auto skip = CallPluginsBefore<void>(HookedCall::IServerImpl__CreateNewCharacter, _genArg1, clientID);
 
 	if(!skip) {
 		CALL_SERVER_PREAMBLE {

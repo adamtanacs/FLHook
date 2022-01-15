@@ -6,12 +6,12 @@ static void LoadMsgs(uint iClientID) {
     // Load from disk the messages.
     for (int iMsgSlot = 0; iMsgSlot < INFO::NUMBER_OF_SLOTS; iMsgSlot++) {
         mapInfo[iClientID].slot[iMsgSlot] =
-            HookExt::IniGetWS(iClientID, "msg." + std::to_string(iMsgSlot));
+            CharacterHook::Get()->IniGetWS(iClientID, "msg." + std::to_string(iMsgSlot));
     }
 
     // Chat time settings.
     mapInfo[iClientID].bShowChatTime =
-        HookExt::IniGetB(iClientID, "msg.chat_time");
+        CharacterHook::Get()->IniGetB(iClientID, "msg.chat_time");
 }
 
 /** Show the greeting banner to the specified player */
@@ -373,7 +373,7 @@ bool Message::UserCmd_SetMsg(uint iClientID, const std::wstring &wscCmd,
         return true;
     }
 
-    HookExt::IniSetWS(iClientID, "msg." + std::to_string(iMsgSlot), wscMsg);
+    CharacterHook::Get()->IniSetWS(iClientID, "msg." + std::to_string(iMsgSlot), wscMsg);
 
     // Reload the character cache
     LoadMsgs(iClientID);
@@ -763,7 +763,7 @@ bool Message::UserCmd_SetChatTime(uint iClientID, const std::wstring &wscCmd,
     std::wstring wscCharname =
         (const wchar_t *)Players.GetActiveCharacterName(iClientID);
 
-    HookExt::IniSetB(iClientID, "msg.chat_time", bShowChatTime);
+    CharacterHook::Get()->IniSetB(iClientID, "msg.chat_time", bShowChatTime);
 
     // Update the client cache.
     auto iter = mapInfo.find(iClientID);

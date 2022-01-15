@@ -1,5 +1,5 @@
 ﻿#include "Main.h"
-#include "../hookext_plugin/hookext_exports.h"
+
 
 void DeleteBase(PlayerBase *base) {
     // If there are players online and in the base then force them to launch to
@@ -31,18 +31,18 @@ void DeleteBase(PlayerBase *base) {
 }
 
 void LoadDockState(uint client) {
-    clients[client].player_base = HookExt::IniGetI(client, "base.player_base");
+    clients[client].player_base = CharacterHook::Get()->IniGetI(client, "base.player_base");
     clients[client].last_player_base =
-        HookExt::IniGetI(client, "base.last_player_base");
+        CharacterHook::Get()->IniGetI(client, "base.last_player_base");
 }
 
 void SaveDockState(uint client) {
-    HookExt::IniSetI(client, "base.player_base", clients[client].player_base);
-    HookExt::IniSetI(client, "base.last_player_base",
+    CharacterHook::Get()->IniSetI(client, "base.player_base", clients[client].player_base);
+    CharacterHook::Get()->IniSetI(client, "base.last_player_base",
                      clients[client].last_player_base);
 }
 
 void DeleteDockState(uint client) {
-    HookExt::IniSetI(client, "base.player_base", 0);
-    HookExt::IniSetI(client, "base.last_player_base", 0);
+    CharacterHook::Get()->IniSetI(client, "base.player_base", 0);
+    CharacterHook::Get()->IniSetI(client, "base.last_player_base", 0);
 }

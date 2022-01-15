@@ -741,6 +741,7 @@ void CCmds::CmdRehash() {
     RIGHT_CHECK(RIGHT_SETTINGS);
     
     LoadSettings();
+    characterHook->LoadSettings();
     CallPluginsAfter(HookedCall::FLHook__LoadSettings);
 
     HookRehashed();

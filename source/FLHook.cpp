@@ -161,6 +161,8 @@ init
 **************************************************************************************************************/
 std::string sDebugLog;
 
+std::unique_ptr<CharacterHook> characterHook = nullptr;
+
 void FLHookInit_Pre() {
 
     InitializeCriticalSection(&cs);
@@ -263,6 +265,9 @@ void FLHookInit_Pre() {
 
         if (set_bDebug && !fLogDebug)
             fopen_s(&fLogDebug, sDebugLog.c_str(), "at");
+
+        characterHook = std::unique_ptr<CharacterHook>();
+        characterHook->LoadSettings();
 
         CallPluginsAfter(HookedCall::FLHook__LoadSettings);
 

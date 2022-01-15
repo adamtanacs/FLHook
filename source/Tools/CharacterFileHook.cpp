@@ -3,8 +3,6 @@
 #include "global.h"
 
 typedef int(__cdecl *_GetFLName)(char *szBuf, const wchar_t *wszStr);
-bool CharacterHook::bPatched = false;
-CharacterHook* CharacterHook::Instance = nullptr;
 
 static PlayerData *CurrPlayer;
 int CharacterHook::HkCbUpdateFile(char *fileName, wchar_t *saveTime, int b) {

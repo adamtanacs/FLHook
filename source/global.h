@@ -98,7 +98,7 @@ class EXPORT Console {
 
 class EXPORT CharacterHook {
     inline static bool bPatched = false;
-    inline static CharacterHook *Instance;
+    inline static CharacterHook *Instance = nullptr;
 
     struct FlHookPlayerData {
         std::string charFileName;

@@ -266,7 +266,7 @@ void FLHookInit_Pre() {
         if (set_bDebug && !fLogDebug)
             fopen_s(&fLogDebug, sDebugLog.c_str(), "at");
 
-        characterHook = std::unique_ptr<CharacterHook>();
+        characterHook = std::make_unique<CharacterHook>();
         characterHook->LoadSettings();
 
         CallPluginsAfter(HookedCall::FLHook__LoadSettings);
